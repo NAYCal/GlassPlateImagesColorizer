@@ -33,10 +33,11 @@ def gaussian_smoothening(image, size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
     Applies Gaussian smoothening on the input image then subtract original image to contrast the edges.
     How blurring works:
     Basic concept - Blurring image is similar to 'moshing' the colors in the area together.
-                    What this means, we can achieve blurring effect by averaging pixel values of a 'window' in the image.
+                    What this means, we can achieve blurring effect by averaging pixel values of a 'window' in the
+                    image.
     Problems      - This naive approach of blurring may have issues preserving edges.
-    Solutions     - Using weighted kernel such that the center pixel (aka the pixel we are trying to blur color) has more
-                    weight.
+    Solutions     - Using weighted kernel such that the center pixel (aka the pixel we are trying to blur color) has
+                    more weight.
     Optimization  - Using the Gaussian distribution formula, which has a higher distribution in the center allows us to
                     achieve the same effect.
 
