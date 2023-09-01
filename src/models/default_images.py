@@ -15,7 +15,7 @@ class DefaultImages(Enum):
     MONASTERY = "monastery.tif"
     ONION_CHURCH = "onion_church.tif"
     SCULPTURE = "sculpture.tif"
-    SELF_POTRAIT = "self_portrait.tif"
+    SELF_PORTRAIT = "self_portrait.tif"
     THREE_GENERATIONS = "three_generations.tif"
     TOBOLSK = "tobolsk.jpg"
     TRAIN = "train.tif"

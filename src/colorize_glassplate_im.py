@@ -1,11 +1,21 @@
 import numpy as np
 import skimage.io as skio
-import skimage.transform
+from scipy import signal
 
 from src.models.default_images import DefaultImages
 
+DEFAULT_KERNEL_SIZE = 30
+DEFAULT_SIGMA = 0.73
+
 
 def normalized_cross_correlation(first_image, second_image):
+    """
+    NCC to retrieve the differences between 2 images
+
+    :param first_image:
+    :param second_image:
+    :return:
+    """
     first_image_mean = np.mean(first_image)
     second_image_mean = np.mean(second_image)
 
@@ -17,8 +27,50 @@ def normalized_cross_correlation(first_image, second_image):
 
     return numerator / denominator
 
-def gaussian_smoothening(image):
-    pass
+
+def gaussian_smoothening(image, size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
+    """
+    Applies Gaussian smoothening on the input image then subtract original image to contrast the edges.
+    How blurring works:
+    Basic concept - Blurring image is similar to 'moshing' the colors in the area together.
+                    What this means, we can achieve blurring effect by averaging pixel values of a 'window' in the image.
+    Problems      - This naive approach of blurring may have issues preserving edges.
+    Solutions     - Using weighted kernel such that the center pixel (aka the pixel we are trying to blur color) has more
+                    weight.
+    Optimization  - Using the Gaussian distribution formula, which has a higher distribution in the center allows us to
+                    achieve the same effect.
+
+    :param image:
+    :param size: The size of kernel to be used.
+    :param sigma: The value of sigma determines the spread or width of the Gaussian curve, which in turn affects the
+    amount of blurring applied to the image. Ideally between 0 < sigma <= 1
+    :return:
+    """
+    kernel = gaussian_kernel(size, sigma)
+    return signal.convolve2d(image, kernel, mode='same', boundary='wrap')
+
+
+def gaussian_kernel(size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
+    """
+    Formulas:
+    Gaussian Distribution Formula in 2D space - G(x, y) = (1 / 2*pi*std^2) * e^((x^2 + y^2) / 2*(std^2))
+    Note: std = standard deviation. For our purposes, we will use an input sigma instead of standard deviation.
+          In the method, we will subtract size // 2 from the coordinates to account for centering on pixel.
+
+    :param size: The size of kernel to be used.
+    :param sigma: The value of sigma determines the spread or width of the Gaussian curve, which in turn affects the
+    amount of blurring applied to the image. Ideally between 0 < sigma <= 1
+    :return:
+    """
+    denom = (1 / (2 * sigma ** 2))
+    offset = size // 2
+
+    kernel = np.fromfunction(
+        lambda i, j: (1 / np.pi) * denom * np.exp(-((i - offset) ** 2 + (j - offset) ** 2) / denom),
+        (size, size)
+    )
+
+    return kernel
 
 
 def best_alignment_offset(aligning_image, base_image, window_width, window_height):
@@ -81,6 +133,7 @@ class GlassPlateImage:
 if __name__ == "__main__":
     im = DefaultImages.CATHEDRAL.get_image()
     gp_im = GlassPlateImage(im)
-    colorized = gp_im.colorized()
-    # skio.imshow(colorized)
-    # skio.show()
+
+    blurred_im = gaussian_smoothening(gp_im.green_channel_im)
+    skio.imshow(blurred_im)
+    skio.show()
