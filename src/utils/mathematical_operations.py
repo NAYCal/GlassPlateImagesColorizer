@@ -1,8 +1,8 @@
 import numpy as np
 from scipy import signal
 
-DEFAULT_KERNEL_SIZE = 5
-DEFAULT_SIGMA = 1
+DEFAULT_KERNEL_SIZE = 50
+DEFAULT_SIGMA = 1000
 
 
 def gaussian_kernel(size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):

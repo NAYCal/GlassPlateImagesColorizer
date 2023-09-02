@@ -2,6 +2,7 @@ import numpy as np
 import skimage.io as skio
 
 from src.models.default_images import DefaultImages
+from src.utils.mathematical_operations import gaussian_smoothening_for_edge
 from src.utils.photo_adjust_op import (
     rolling_alignment,
     crop_with_percent,
@@ -33,8 +34,8 @@ class GlassPlateImage:
         g = self.green_channel_im
         b = self.blue_channel_im
 
-        rb = self.align_func(r, b)
-        gb = self.align_func(g, b)
+        rb, _ = self.align_func(r, b)
+        gb, _ = self.align_func(g, b)
 
         return np.dstack([rb, gb, b])
 
@@ -60,10 +61,6 @@ class GlassPlateImage:
 
 
 if __name__ == "__main__":
-    im = DefaultImages.HARVESTERS.get_image()
-    print(im.shape)
-    # gp_im = GlassPlateImage(im)
-    # gp_im.show_colorized()
-
-    # skio.imshow(pyramid_align(im, im))
-    # skio.show()
+    im = DefaultImages.LADY.get_image()
+    gp_im = GlassPlateImage(im, pyramid_align)
+    gp_im.show_colorized()
