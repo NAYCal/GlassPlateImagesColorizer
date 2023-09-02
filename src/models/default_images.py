@@ -12,7 +12,7 @@ class DefaultImages(Enum):
     ICON = "icon.tif"
     LADY = "lady.tif"
     MELONS = "melons.tif"
-    MONASTERY = "monastery.tif"
+    MONASTERY = "monastery.jpg"
     ONION_CHURCH = "onion_church.tif"
     SCULPTURE = "sculpture.tif"
     SELF_PORTRAIT = "self_portrait.tif"
@@ -35,5 +35,5 @@ class DefaultImages(Enum):
 
 
 if __name__ == "__main__":
-    skio.imshow(DefaultImages.CATHEDRAL.get_image())
+    skio.imshow(DefaultImages.MONASTERY.get_image())
     skio.show()
