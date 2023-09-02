@@ -2,7 +2,11 @@ import numpy as np
 import skimage.io as skio
 
 from src.models.default_images import DefaultImages
-from src.utils.photo_adjust_op import rolling_alignment, crop_with_percent
+from src.utils.photo_adjust_op import (
+    rolling_alignment,
+    crop_with_percent,
+    pyramid_align,
+)
 
 DEFAULT_ALIGNMENT_FUNC = rolling_alignment
 
@@ -12,8 +16,8 @@ class GlassPlateImage:
         im_height = np.floor(source_image.shape[0] / 3.0).astype(int)
         self.source_im = source_image.copy()
         self.blue_channel_im = self.source_im[:im_height]
-        self.green_channel_im = self.source_im[im_height: 2 * im_height]
-        self.red_channel_im = self.source_im[2 * im_height: 3 * im_height]
+        self.green_channel_im = self.source_im[im_height : 2 * im_height]
+        self.red_channel_im = self.source_im[2 * im_height : 3 * im_height]
 
         # Crop the photos to remove borders
         self.blue_channel_im = crop_with_percent(self.blue_channel_im)
@@ -56,6 +60,10 @@ class GlassPlateImage:
 
 
 if __name__ == "__main__":
-    im = DefaultImages.CATHEDRAL.get_image()
-    gp_im = GlassPlateImage(im)
-    gp_im.show_colorized()
+    im = DefaultImages.HARVESTERS.get_image()
+    print(im.shape)
+    # gp_im = GlassPlateImage(im)
+    # gp_im.show_colorized()
+
+    # skio.imshow(pyramid_align(im, im))
+    # skio.show()
