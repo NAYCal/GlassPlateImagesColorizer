@@ -2,12 +2,11 @@ import numpy as np
 import skimage.io as skio
 
 from src.models.default_images import DefaultImages
-from src.utils.mathematical_operations import gaussian_smoothen, canny_edge_detection, \
-    gaussian_smoothening_edge_subtraction
-from src.utils.photo_adjustment_operations import exhaustive_alignment, crop_with_percent, pyramid_alignment
+from src.utils.mathematical_operations import canny_edge_detection
+from src.utils.photo_adjustment_operations import crop_with_percent, pyramid_alignment
 
 DEFAULT_ALIGNMENT_FN = pyramid_alignment
-DEFAULT_EDGE_DETECTION_FUNC = gaussian_smoothening_edge_subtraction
+DEFAULT_EDGE_DETECTION_FUNC = canny_edge_detection
 
 
 class GlassPlateImage:
@@ -67,7 +66,6 @@ class GlassPlateImage:
 
 
 if __name__ == "__main__":
-    im = DefaultImages.EMIR.get_image()
+    im = DefaultImages.CATHEDRAL.get_image()
     gp_im = GlassPlateImage(im, to_edge=False)
     gp_im.show_colorized()
-

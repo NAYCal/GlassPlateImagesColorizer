@@ -1,6 +1,5 @@
 import numpy as np
 import skimage as sk
-import skimage.io as skio
 
 from src.utils.mathematical_operations import sum_of_squared_differences
 
