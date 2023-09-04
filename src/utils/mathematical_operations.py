@@ -1,8 +1,13 @@
 import numpy as np
+import skimage
 from scipy import signal
+from skimage import io, color, feature
 
-DEFAULT_KERNEL_SIZE = 50
-DEFAULT_SIGMA = 1000
+DEFAULT_KERNEL_SIZE = 5
+DEFAULT_SIGMA = 1.0
+THRESHOLD = 0.5
+THRESHOLD_LOW = 0.2
+THRESHOLD_HIGH = 0.3
 
 
 def gaussian_kernel(size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
@@ -25,7 +30,16 @@ def gaussian_kernel(size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
     return kernel / np.sum(kernel)
 
 
-def gaussian_smoothening_for_edge(
+def gaussian_smoothen(in_image, size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
+    kernel = gaussian_kernel(size, sigma)
+
+    # Apply Gaussian smoothing
+    blurred_image = signal.convolve2d(in_image, kernel, mode="same", boundary="wrap")
+
+    return blurred_image
+
+
+def gaussian_smoothening_edge_subtraction(
     in_image, size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA
 ):
     """
@@ -47,9 +61,36 @@ def gaussian_smoothening_for_edge(
     :return:
     """
     kernel = gaussian_kernel(size, sigma)
-    image = np.copy(in_image)
-    blurred_image = signal.convolve2d(image, kernel, mode="same", boundary="wrap")
-    return blurred_image - image
+
+    # Normalize channel values to 0-1 range
+    channel = (in_image - np.min(in_image)) / (np.max(in_image) - np.min(in_image))
+
+    # Apply Gaussian smoothing
+    blurred_channel = signal.convolve2d(channel, kernel, mode="same", boundary="wrap")
+
+    # Normalize the blurred channel to 0-1 range
+    blurred_channel = (blurred_channel - np.min(blurred_channel)) / (
+        np.max(blurred_channel) - np.min(blurred_channel)
+    )
+
+    # Subtract original channel and threshold to get edges
+    edges = blurred_channel - channel
+    edges[edges < THRESHOLD] = 0
+    edges[edges >= THRESHOLD] = 1
+
+    return edges
+
+
+def canny_edge_detection(channel, size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
+    # Apply Gaussian smoothing
+    blurred_channel = gaussian_smoothen(channel, size, sigma)
+
+    # Apply Canny edge detection using scikit-image's feature.canny
+    edges = feature.canny(
+        blurred_channel, low_threshold=THRESHOLD_LOW, high_threshold=THRESHOLD_HIGH
+    )
+
+    return edges
 
 
 def sum_of_squared_differences(first_image, second_image):
