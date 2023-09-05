@@ -25,10 +25,23 @@ class GlassPlateImage:
 
         self.align_fn = align_fn
         self.to_edge_fn = edge_detection_fn
-        self.colorized_im = None
         self.to_edge = to_edge
+        
+        self.colorized_im = None
+        self.edged_colorized = None
+        self.offsets = {}
 
+    def no_align_colorized(self):
+        r = np.copy(self.red_channel_im)
+        g = np.copy(self.green_channel_im)
+        b = np.copy(self.blue_channel_im)
+
+        return np.dstack([r, g, b])
+        
     def colorized(self):
+        if self.colorized_im is not None:
+            return self.colorized_im
+
         r = np.copy(self.red_channel_im)
         g = np.copy(self.green_channel_im)
         b = np.copy(self.blue_channel_im)
@@ -37,10 +50,21 @@ class GlassPlateImage:
             r = self.to_edge_fn(r)
             g = self.to_edge_fn(g)
 
-        rb, _ = self.align_fn(r, b, np.copy(self.red_channel_im))
-        gb, _ = self.align_fn(g, b, np.copy(self.green_channel_im))
+        rb, self.offsets["rb"] = self.align_fn(r, b, np.copy(self.red_channel_im))
+        gb, self.offsets["gb"] = self.align_fn(g, b, np.copy(self.green_channel_im))
 
-        return np.dstack([rb, gb, b])
+        self.colorized_im = np.dstack([rb, gb, b])
+
+        return self.colorized_im
+
+    def colorized_edges(self):
+        if self.edged_colorized is not None:
+            return self.edged_colorized
+        if self.colorized_im is None:
+            self.colorized()
+
+        self.edged_colorized = self.to_edge_fn(self.colorized_im)
+        return self.edged_colorized
 
     def show_original(self):
         skio.imshow(self.source_im)
@@ -60,7 +84,7 @@ class GlassPlateImage:
 
     def show_colorized(self):
         if self.colorized_im is None:
-            self.colorized_im = self.colorized()
+            self.colorized()
         skio.imshow(self.colorized_im)
         skio.show()
 
