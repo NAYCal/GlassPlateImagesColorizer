@@ -44,14 +44,14 @@ def gaussian_smoothening_edge_subtraction(in_image, size=DEFAULT_KERNEL_SIZE, si
     edges = blurred_channel - channel
 
     # Normalize the edges to [0, 255] range
-    edges_normalized = ((edges - np.min(edges)) / (np.max(edges) - np.min(edges))) * 255
+    edges_normalized = ((edges - np.min(edges)) / (np.max(edges) - np.min(edges)))
 
     # Compute Otsu's threshold
     otsu_threshold = threshold_otsu(edges_normalized)
     edges_binary = edges_normalized > otsu_threshold
 
-    # Convert the binary edges to floating-point in [0, 255] range
-    edges_float = edges_binary.astype(float) * 255
+    # Convert the binary edges to floating-point
+    edges_float = edges_binary.astype(float)
 
     return edges_float
 
