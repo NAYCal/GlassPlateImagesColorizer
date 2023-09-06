@@ -3,7 +3,7 @@ import skimage.io as skio
 
 from src.models.default_images import DefaultImages
 from src.utils.mathematical_operations import canny_edge_detection, sum_of_squared_differences, \
-    gaussian_smoothening_edge_subtraction
+    gaussian_smoothening_edge_subtraction, gaussian_smoothen
 from src.utils.photo_adjustment_operations import crop_with_percent, pyramid_alignment
 
 DEFAULT_ALIGNMENT_FN = pyramid_alignment
@@ -12,7 +12,7 @@ DEFAULT_EDGE_DETECTION_FUNC = gaussian_smoothening_edge_subtraction
 
 class GlassPlateImage:
     def __init__(self, source_image, align_fn=DEFAULT_ALIGNMENT_FN,
-                 edge_detection_fn=DEFAULT_EDGE_DETECTION_FUNC, to_edge=False):
+                 edge_detection_fn=DEFAULT_EDGE_DETECTION_FUNC, to_edge=False, to_blurr=False):
         im_height = np.floor(source_image.shape[0] / 3.0).astype(int)
         self.source_im = source_image.copy()
         self.blue_channel_im = self.source_im[:im_height]
@@ -23,6 +23,11 @@ class GlassPlateImage:
         self.blue_channel_im = crop_with_percent(self.blue_channel_im)
         self.green_channel_im = crop_with_percent(self.green_channel_im)
         self.red_channel_im = crop_with_percent(self.red_channel_im)
+
+        if to_blurr:
+            self.blue_channel_im = gaussian_smoothen(self.blue_channel_im)
+            self.green_channel_im = gaussian_smoothen(self.green_channel_im)
+            self.red_channel_im = gaussian_smoothen(self.red_channel_im)
 
         self.align_fn = align_fn
         self.to_edge_fn = edge_detection_fn
@@ -111,7 +116,7 @@ class GlassPlateImage:
             images.append(np.dstack([no_edge_r, no_edge_g, no_edge_b]))
 
             self.to_edge_fn = canny_edge_detection
-            canny_r, canny_g, canny_b = self.align(base, True)
+            canny_r, canny_g, canny_b = self.align(base, False)
             canny_diff = (sum_of_squared_differences(canny_r, canny_g) +
                           sum_of_squared_differences(canny_r, canny_b) +
                           sum_of_squared_differences(canny_b, canny_g))
@@ -121,7 +126,7 @@ class GlassPlateImage:
             images.append(np.dstack([canny_r, canny_g, canny_b]))
 
             self.to_edge_fn = gaussian_smoothening_edge_subtraction
-            gauss_r, gauss_g, gauss_b = self.align(base, True)
+            gauss_r, gauss_g, gauss_b = self.align(base, False)
             gauss_diff = (sum_of_squared_differences(gauss_r, gauss_g) +
                           sum_of_squared_differences(gauss_r, gauss_b) +
                           sum_of_squared_differences(gauss_b, gauss_g))
@@ -162,7 +167,8 @@ class GlassPlateImage:
 
 
 if __name__ == "__main__":
-    im = DefaultImages.CATHEDRAL.get_image()
+    im = DefaultImages.CHURCH.get_image()
     gp_im = GlassPlateImage(im, to_edge=False)
 
-    gp_im.show_colorized()
+    skio.imshow(gp_im.best_aligned())
+    skio.show()
