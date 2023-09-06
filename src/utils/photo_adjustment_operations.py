@@ -110,5 +110,5 @@ def pyramid_alignment(
     _, estimate_offset = pyramid_alignment(scaled_input, scaled_base, clean_image, x_offset, y_offset,
                                            x_range, y_range, process_fn, align_loss_fn, min_size_for_pyramid)
 
-    return exhaustive_alignment(input_image, base_image, clean_image, estimate_offset[0], estimate_offset[1],
-                                estimate_offset[0], estimate_offset[1], process_fn, align_loss_fn)
+    return exhaustive_alignment(input_image, base_image, clean_image, estimate_offset[0] * 2, estimate_offset[1] * 2,
+                                15, 15, process_fn, align_loss_fn)

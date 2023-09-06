@@ -4,65 +4,85 @@ import skimage.io as skio
 from src.models.default_images import DefaultImages
 from src.models.colorize_glassplate_im import GlassPlateImage
 from src.utils.image_display_operations import display_images
+from src.utils.mathematical_operations import canny_edge_detection, gaussian_smoothening_edge_subtraction
 
 
-def save_image(image, image_name, image_type):
+def save_image(image, name, image_type):
     # Scale image data to 0-255 range for storing
     scaled_image = (image.copy() * 255).astype(np.uint8)
 
     # save the image
-    file_name = '../out/' + image_type + '/' + image_name + '.jpg'
+    file_name = '../out/' + image_type + '/' + name + '.jpg'
     skio.imsave(file_name, scaled_image)
 
 
-# Stores the image objects themselves
-original_images = []
-glass_plate_images = []
-no_alignment_images = []
-colorized_images = []
-# colorized_edged_images = []
+# Divide by stages to save all the progresses made
+# Iterate through all the default images
+for unprocessed_image in DefaultImages:
+    image_name = unprocessed_image.name
+    print("Processing "+ image_name)
+    unprocessed_image = unprocessed_image.get_image()
 
-all_processed_images = []
+    processing_image = GlassPlateImage(unprocessed_image, edge_detection_fn=gaussian_smoothening_edge_subtraction)
 
-#Stores the names
-original_titles = []
-no_alignment_titles = []
-colorized_titles = []
-# colorized_edged_titles = []
+    no_alignment_image = processing_image.no_align_colorized()
+    colorized_image = processing_image.colorized()
+    edge_image = processing_image.aligned_edge_image()
+    edge_overlay_image = processing_image.edges_on_base_image()
 
-all_processed_titles = []
+    r_offset = str(processing_image.offsets["r"][0]) + "_" + str(processing_image.offsets["r"][1])
+    g_offset = str(processing_image.offsets["g"][0]) + "_" + str(processing_image.offsets["g"][1])
+    b_offset = str(processing_image.offsets["b"][0]) + "_" + str(processing_image.offsets["b"][1])
 
-# Save the images
-for val in DefaultImages:
-    im_titles = val.name
-    original_image = val.get_image()
+    save_image(no_alignment_image, "unaligned_" + image_name, "naive_colorized_images")
+    save_image(colorized_image, image_name + "_r" + r_offset + "_g" + g_offset + "_b" + b_offset, "colorized_images")
+    save_image(edge_image, image_name + "_gaussian_smoothening_edge_subtraction", "edge_images")
+    save_image(edge_overlay_image, image_name + "_gaussian_smoothening_edge_subtraction", "edge_overlay_images")
 
-    gpi_image = GlassPlateImage(original_image)
-    no_alignment_image = gpi_image.no_align_colorized()
-    colorized_image = gpi_image.colorized()
-    # colorized_edged_image = gpi_image.colorized_edges()
+    processing_image = GlassPlateImage(unprocessed_image,
+                                       edge_detection_fn=gaussian_smoothening_edge_subtraction,
+                                       to_edge=True)
+    colorized_image_with_edges = processing_image.colorized()
 
-    original_images.append(original_image)
-    glass_plate_images.append(gpi_image)
-    no_alignment_images.append(no_alignment_image)
-    colorized_images.append(colorized_image)
-    # colorized_edged_images.append(colorized_edged_image)
+    r_offset = str(processing_image.offsets["r"][0]) + "_" + str(processing_image.offsets["r"][1])
+    g_offset = str(processing_image.offsets["g"][0]) + "_" + str(processing_image.offsets["g"][1])
+    b_offset = str(processing_image.offsets["b"][0]) + "_" + str(processing_image.offsets["b"][1])
 
-    all_processed_images.append([no_alignment_image, colorized_image])
+    save_image(colorized_image_with_edges,
+               image_name + "_r" + r_offset + "_g" + g_offset + "_b" + b_offset + "_gaussian_smoothening_edge_subtraction",
+               "colorized_images_by_edges")
 
-    no_alignment_title = im_titles + "_not_aligned"
-    colorized_title = im_titles + "_colorized_r_" + str(gpi_image.offsets["rb"]) + "_" + str(gpi_image.offsets["gb"])
-    # colorized_edged_title = im_titles + "_edges"
+    processing_image = GlassPlateImage(unprocessed_image,
+                                       edge_detection_fn=canny_edge_detection,
+                                       to_edge=True)
+    colorized_image_with_edges = processing_image.colorized()
 
-    original_titles.append(im_titles)
-    no_alignment_titles.append(no_alignment_title)
-    colorized_titles.append(colorized_title)
-    # colorized_edged_titles.append(colorized_edged_title)
+    r_offset = str(processing_image.offsets["r"][0]) + "_" + str(processing_image.offsets["r"][1])
+    g_offset = str(processing_image.offsets["g"][0]) + "_" + str(processing_image.offsets["g"][1])
+    b_offset = str(processing_image.offsets["b"][0]) + "_" + str(processing_image.offsets["b"][1])
 
-    all_processed_titles.append([no_alignment_title, colorized_title])
+    save_image(colorized_image_with_edges,
+               image_name + "_r" + r_offset + "_g" + g_offset + "_b" + b_offset + "_canny_edge_detection",
+               "colorized_images_by_edges")
 
-    save_image(no_alignment_image, no_alignment_title, "no_alignment")
-    save_image(colorized_image, colorized_title, "colorized_g_based")
-    # save_image(colorized_edged_image, colorized_edged_title, "colorized_edge")
+print("Stage 1 complete: Got all images processed through normal means")
 
-display_images(original_images, all_processed_images, "Colorized Prokudin-Gorskii glass plate images", original_titles, all_processed_titles)
+# # Iterate through all the default images
+# for unprocessed_image in DefaultImages:
+#     image_name = unprocessed_image.name
+#     unprocessed_image = unprocessed_image.get_image()
+#
+#     processing_image = GlassPlateImage(unprocessed_image)
+#     best_image = processing_image.best_aligned()
+#
+#     r_offset = str(processing_image.offsets["r"][0]) + "_" + str(processing_image.offsets["r"][1])
+#     g_offset = str(processing_image.offsets["g"][0]) + "_" + str(processing_image.offsets["g"][1])
+#     b_offset = str(processing_image.offsets["b"][0]) + "_" + str(processing_image.offsets["b"][1])
+#
+#     best_settings = str(processing_image.best_alignment_settings[0]) + "_" + str(processing_image.best_alignment_settings[1])
+#
+#     save_image(best_image,
+#                image_name + "_r" + r_offset + "_g" + g_offset + "_b" + b_offset + "_" + best_settings,
+#                "best_colorized_images")
+#
+# print("Finish processing all images")

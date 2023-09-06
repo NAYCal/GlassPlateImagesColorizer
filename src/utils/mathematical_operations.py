@@ -1,5 +1,5 @@
 import numpy as np
-import skimage
+import skimage as sk
 from scipy import signal
 from skimage import io, color, feature
 from skimage.filters import threshold_otsu
@@ -43,32 +43,37 @@ def gaussian_smoothening_edge_subtraction(in_image, size=DEFAULT_KERNEL_SIZE, si
     # Subtract original channel to get edges
     edges = blurred_channel - channel
 
-    # Compute Otsu's threshold
-    otsu_threshold = threshold_otsu(edges)
-    edges[edges < otsu_threshold] = 0
-    edges[edges >= otsu_threshold] = 1
+    # Normalize the edges to [0, 255] range
+    edges_normalized = ((edges - np.min(edges)) / (np.max(edges) - np.min(edges))) * 255
 
-    return edges
+    # Compute Otsu's threshold
+    otsu_threshold = threshold_otsu(edges_normalized)
+    edges_binary = edges_normalized > otsu_threshold
+
+    # Convert the binary edges to floating-point in [0, 255] range
+    edges_float = edges_binary.astype(float) * 255
+
+    return edges_float
 
 
 def canny_edge_detection(channel, size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA,
-                         low_threshold_to_median = 0.01, high_threshold_to_median = 0.03):
+                         low_threshold_to_median=0.01, high_threshold_to_median=0.03):
     # Apply Gaussian smoothing
     blurred_channel = gaussian_smoothen(channel, size, sigma)
 
-    # Compute the median of the pixel intensities
-    median_intensity = np.median(blurred_channel)
+    # Calculate Otsu's threshold
+    threshold = threshold_otsu(blurred_channel)
 
     # Set thresholds based on the median of the pixel intensities
-    low_threshold = low_threshold_to_median * median_intensity
-    high_threshold = high_threshold_to_median * median_intensity
+    low_threshold = low_threshold_to_median * threshold
+    high_threshold = high_threshold_to_median * threshold
 
     # Apply Canny edge detection using scikit-image's feature.canny
     edges = feature.canny(
         blurred_channel, low_threshold=low_threshold, high_threshold=high_threshold
     )
 
-    return edges
+    return sk.img_as_float(edges)
 
 
 def gaussian_kernel(size=DEFAULT_KERNEL_SIZE, sigma=DEFAULT_SIGMA):
